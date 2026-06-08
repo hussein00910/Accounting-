@@ -1,0 +1,110 @@
+{
+  "categories": [
+    {
+      "id": "food",
+      "name": "مطاعم وكافيهات",
+      "name_en": "Food & Dining",
+      "icon": "food",
+      "color": "#FF6B6B",
+      "keywords": [
+        "مطعم", "كافيه", "كافيهـ", "مقهى", "restaurant", "cafe", "coffee",
+        "ماكدونالدز", "mcdonalds", "برجر كينج", "burger king", "كي إف سي", "kfc",
+        "بيتزا هت", "pizza hut", "دومينوز", "dominos", "ستاربكس", "starbucks",
+        "جاهز", "جاهزكم", "talabat", "طلبات", "هنقرستيشن", "hungerstation",
+        "كارفور", "carrefour", "jarir", "جرير", "مطاعم"
+      ]
+    },
+    {
+      "id": "shopping",
+      "name": "تسوق",
+      "name_en": "Shopping",
+      "icon": "shopping",
+      "color": "#4ECDC4",
+      "keywords": [
+        "نون", "noon", "أمازون", "amazon", "شوبيفاي", "شي إن", "shein",
+        "H&M", "h&m", "زارا", "zara", "ماكس فاشن", "max fashion",
+        "سيتي سنتر", "city centre", "مول", "mall", "سوق", "market",
+        "تمييز", "tamimi", "بنده", "panda", "أسواق"
+      ]
+    },
+    {
+      "id": "fuel",
+      "name": "وقود ومواصلات",
+      "name_en": "Fuel & Transport",
+      "icon": "car",
+      "color": "#45B7D1",
+      "keywords": [
+        "أرامكو", "aramco", "shell", "bp", "total", "محطة", "بنزين",
+        "وقود", "fuel", "gas station", "الحرمين", "أوبر", "uber",
+        "كريم", "careem", "تاكسي", "taxi"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "صحة وصيدليات",
+      "name_en": "Health & Pharmacy",
+      "icon": "hospital",
+      "color": "#96CEB4",
+      "keywords": [
+        "صيدلية", "pharmacy", "مستشفى", "hospital", "عيادة", "clinic",
+        "نهدي", "nahdi", "الدواء", "dawaa", "أسبرين", "دكتور", "doctor",
+        "طبي", "medical", "health"
+      ]
+    },
+    {
+      "id": "subscriptions",
+      "name": "اشتراكات",
+      "name_en": "Subscriptions",
+      "icon": "television-play",
+      "color": "#FFEAA7",
+      "keywords": [
+        "netflix", "نتفليكس", "spotify", "شاهد", "shahid", "osn",
+        "apple", "google", "microsoft", "adobe", "stc", "زين", "zain",
+        "موبايلي", "mobily", "فودافون", "vodafone"
+      ]
+    },
+    {
+      "id": "bills",
+      "name": "فواتير وخدمات",
+      "name_en": "Bills & Utilities",
+      "icon": "lightning-bolt",
+      "color": "#DDA0DD",
+      "keywords": [
+        "كهرباء", "electricity", "ماء", "water", "غاز", "gas",
+        "internet", "إنترنت", "اتصالات", "telecom", "فاتورة", "bill",
+        "sadad", "سداد", "stc pay"
+      ]
+    },
+    {
+      "id": "transfer",
+      "name": "تحويلات",
+      "name_en": "Transfers",
+      "icon": "bank-transfer",
+      "color": "#74B9FF",
+      "keywords": [
+        "تحويل", "transfer", "إيفاء", "اقتطاع", "deduction",
+        "western union", "ويسترن يونيون", "حوالة"
+      ]
+    },
+    {
+      "id": "entertainment",
+      "name": "ترفيه",
+      "name_en": "Entertainment",
+      "icon": "gamepad-variant",
+      "color": "#FD79A8",
+      "keywords": [
+        "سينما", "cinema", "أفلام", "movies", "ألعاب", "games",
+        "playstation", "xbox", "steam", "بلايستيشن", "موووفي", "muvi",
+        "vox", "مولانا"
+      ]
+    },
+    {
+      "id": "other",
+      "name": "أخرى",
+      "name_en": "Other",
+      "icon": "dots-horizontal",
+      "color": "#B2BEC3",
+      "keywords": []
+    }
+  ]
+}

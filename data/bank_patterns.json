@@ -1,0 +1,100 @@
+{
+  "banks": [
+    {
+      "id": "RAJHI",
+      "name": "بنك الراجحي",
+      "name_en": "Al Rajhi Bank",
+      "senders": ["ALRAJHI", "AlRajhi", "547", "RAJHI"],
+      "debit_keywords": ["تم الشراء", "تم الخصم", "مدين", "خُصم", "Purchase", "Debit", "POS"],
+      "credit_keywords": ["تم الإيداع", "Credit", "إيداع", "واردة"],
+      "balance_keywords": ["الرصيد المتاح", "رصيدك", "Available Balance"],
+      "currency": "SAR",
+      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ريال|SAR|ر\.س)",
+      "merchant_pattern": "(?:لدى|عند|at|@)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "SNB",
+      "name": "البنك الأهلي السعودي",
+      "name_en": "Saudi National Bank",
+      "senders": ["SNB", "NCB", "ALANDALUS", "AHLI"],
+      "debit_keywords": ["deducted", "debited", "Purchase", "خُصم", "مدين", "تم سحب"],
+      "credit_keywords": ["credited", "deposited", "إيداع", "تم إيداع"],
+      "balance_keywords": ["balance", "رصيد", "Balance"],
+      "currency": "SAR",
+      "amount_pattern": "SAR\\s*([\\d,]+\\.\\d{2})|([\\d,]+\\.\\d{2})\\s*SAR",
+      "merchant_pattern": "(?:at|@|لدى)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "RIYAD",
+      "name": "بنك الرياض",
+      "name_en": "Riyad Bank",
+      "senders": ["RIYADBANK", "RiyadBank", "RIYAD"],
+      "debit_keywords": ["خُصم من حسابك", "Purchase", "تم خصم", "Debit"],
+      "credit_keywords": ["أُضيف لحسابك", "Credit", "إيداع"],
+      "balance_keywords": ["رصيدك الحالي", "Current Balance"],
+      "currency": "SAR",
+      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ريال|SAR|ر\.س)",
+      "merchant_pattern": "(?:لدى|من|at)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "ALINMA",
+      "name": "بنك الإنماء",
+      "name_en": "Alinma Bank",
+      "senders": ["ALINMA", "Alinma"],
+      "debit_keywords": ["عملية شراء", "خصم", "Purchase", "POS"],
+      "credit_keywords": ["إيداع", "Credit"],
+      "balance_keywords": ["الرصيد", "Balance"],
+      "currency": "SAR",
+      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ر\.س|ريال|SAR)",
+      "merchant_pattern": "(?:من|لدى|at)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "SABB",
+      "name": "البنك السعودي البريطاني",
+      "name_en": "SABB",
+      "senders": ["SABB", "HSBC"],
+      "debit_keywords": ["deducted", "Purchase", "Debit", "خُصم"],
+      "credit_keywords": ["credited", "Credit", "إيداع"],
+      "balance_keywords": ["Available balance", "Balance"],
+      "currency": "SAR",
+      "amount_pattern": "(?:SAR|SR)\\s*([\\d,]+\\.\\d{2})|([\\d,]+\\.\\d{2})\\s*(?:SAR|SR)",
+      "merchant_pattern": "(?:at|from)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "FAB",
+      "name": "بنك أبوظبي الأول",
+      "name_en": "First Abu Dhabi Bank",
+      "senders": ["FAB", "NBAD"],
+      "debit_keywords": ["debited", "Purchase", "Debit"],
+      "credit_keywords": ["credited", "Credit"],
+      "balance_keywords": ["Available balance", "Balance"],
+      "currency": "AED",
+      "amount_pattern": "AED\\s*([\\d,]+\\.\\d{2})|([\\d,]+\\.\\d{2})\\s*AED",
+      "merchant_pattern": "(?:at|from)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "EMIRATESNBD",
+      "name": "بنك الإمارات دبي الوطني",
+      "name_en": "Emirates NBD",
+      "senders": ["EmiratesNBD", "ENBD", "Emirates"],
+      "debit_keywords": ["debited", "Purchase", "Debit"],
+      "credit_keywords": ["credited", "Credit", "Salary"],
+      "balance_keywords": ["Bal:", "Balance"],
+      "currency": "AED",
+      "amount_pattern": "AED\\s*([\\d,]+\\.\\d{2})|([\\d,]+\\.\\d{2})\\s*AED",
+      "merchant_pattern": "(?:at|At)\\s*([^\\n.,]+)"
+    },
+    {
+      "id": "KFH",
+      "name": "بيت التمويل الكويتي",
+      "name_en": "Kuwait Finance House",
+      "senders": ["KFH", "KFHSA"],
+      "debit_keywords": ["تم الخصم", "Purchase", "Debit", "خصم"],
+      "credit_keywords": ["إيداع", "Credit"],
+      "balance_keywords": ["الرصيد", "Balance"],
+      "currency": "KWD",
+      "amount_pattern": "(?:KWD|د\.ك)\\s*([\\d,]+\\.\\d{3})|([\\d,]+\\.\\d{3})\\s*(?:KWD|د\.ك)",
+      "merchant_pattern": "(?:لدى|at)\\s*([^\\n،,]+)"
+    }
+  ]
+}
