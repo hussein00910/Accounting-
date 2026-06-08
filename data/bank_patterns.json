@@ -9,7 +9,7 @@
       "credit_keywords": ["تم الإيداع", "Credit", "إيداع", "واردة"],
       "balance_keywords": ["الرصيد المتاح", "رصيدك", "Available Balance"],
       "currency": "SAR",
-      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ريال|SAR|ر\.س)",
+      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ريال|SAR|ر\\.س)",
       "merchant_pattern": "(?:لدى|عند|at|@)\\s*([^\\n،,]+)"
     },
     {
@@ -33,7 +33,7 @@
       "credit_keywords": ["أُضيف لحسابك", "Credit", "إيداع"],
       "balance_keywords": ["رصيدك الحالي", "Current Balance"],
       "currency": "SAR",
-      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ريال|SAR|ر\.س)",
+      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ريال|SAR|ر\\.س)",
       "merchant_pattern": "(?:لدى|من|at)\\s*([^\\n،,]+)"
     },
     {
@@ -45,7 +45,7 @@
       "credit_keywords": ["إيداع", "Credit"],
       "balance_keywords": ["الرصيد", "Balance"],
       "currency": "SAR",
-      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ر\.س|ريال|SAR)",
+      "amount_pattern": "([\\d,]+\\.\\d{2})\\s*(?:ر\\.س|ريال|SAR)",
       "merchant_pattern": "(?:من|لدى|at)\\s*([^\\n،,]+)"
     },
     {
@@ -93,7 +93,7 @@
       "credit_keywords": ["إيداع", "Credit"],
       "balance_keywords": ["الرصيد", "Balance"],
       "currency": "KWD",
-      "amount_pattern": "(?:KWD|د\.ك)\\s*([\\d,]+\\.\\d{3})|([\\d,]+\\.\\d{3})\\s*(?:KWD|د\.ك)",
+      "amount_pattern": "(?:KWD|د\\.ك)\\s*([\\d,]+\\.\\d{3})|([\\d,]+\\.\\d{3})\\s*(?:KWD|د\\.ك)",
       "merchant_pattern": "(?:لدى|at)\\s*([^\\n،,]+)"
     }
   ]
