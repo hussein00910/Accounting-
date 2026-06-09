@@ -1,7 +1,7 @@
 [app]
-title = مصروفاتي
-package.name = masarifati
-package.domain = com.hussein.masarifati
+title = المحاسب الذكي
+package.name = smartaccountant
+package.domain = com.hussein.smartaccountant
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json
@@ -24,6 +24,7 @@ android.sdk = 34
 android.archs = arm64-v8a, armeabi-v7a
 
 android.allow_backup = True
+android.accept_sdk_license = True
 
 # Build settings
 p4a.branch = master

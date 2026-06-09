@@ -1,5 +1,5 @@
 """
-مصروفاتي — تطبيق تتبع المصروفات البنكية عبر SMS
+المحاسب الذكي — Smart Accountant
 Entry point: initialises KivyMD theme, builds ScreenManager, runs SMS sync.
 """
 
@@ -34,12 +34,12 @@ _NAV_ITEMS = [
 ]
 
 
-class MasarifatiApp(MDApp):
+class SmartAccountantApp(MDApp):
     def build(self):
-        self.theme_cls.theme_style = 'Dark'
-        self.theme_cls.primary_palette = 'Cyan'
-        self.theme_cls.accent_palette = 'Teal'
-        self.title = 'مصروفاتي'
+        self.theme_cls.theme_style = 'Light'
+        self.theme_cls.primary_palette = 'Blue'
+        self.theme_cls.accent_palette = 'DeepOrange'
+        self.title = 'المحاسب الذكي'
 
         root = MDBoxLayout(orientation='vertical')
 
@@ -106,4 +106,4 @@ class MasarifatiApp(MDApp):
 
 
 if __name__ == '__main__':
-    MasarifatiApp().run()
+    SmartAccountantApp().run()

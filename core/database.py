@@ -80,6 +80,64 @@ class Database:
             CREATE INDEX IF NOT EXISTS idx_tx_date     ON transactions(date);
             CREATE INDEX IF NOT EXISTS idx_tx_category ON transactions(category);
             CREATE INDEX IF NOT EXISTS idx_tx_type     ON transactions(type);
+
+            CREATE TABLE IF NOT EXISTS customers (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT    NOT NULL,
+                balance    REAL    NOT NULL DEFAULT 0.0,
+                phone      TEXT    DEFAULT '',
+                notes      TEXT    DEFAULT '',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS suppliers (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT    NOT NULL,
+                balance    REAL    NOT NULL DEFAULT 0.0,
+                phone      TEXT    DEFAULT '',
+                notes      TEXT    DEFAULT '',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS employees (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT    NOT NULL,
+                salary     REAL    NOT NULL DEFAULT 0.0,
+                balance    REAL    NOT NULL DEFAULT 0.0,
+                phone      TEXT    DEFAULT '',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS debts (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                party_name TEXT    NOT NULL,
+                amount     REAL    NOT NULL DEFAULT 0.0,
+                direction  TEXT    NOT NULL DEFAULT 'owed_to_us',
+                due_date   TEXT    DEFAULT '',
+                notes      TEXT    DEFAULT '',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS cash_boxes (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT    NOT NULL,
+                balance    REAL    NOT NULL DEFAULT 0.0,
+                currency   TEXT    NOT NULL DEFAULT 'YER',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE TABLE IF NOT EXISTS measurements (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT    NOT NULL,
+                value      REAL    DEFAULT 0.0,
+                unit       TEXT    DEFAULT '',
+                notes      TEXT    DEFAULT '',
+                created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_customers_name  ON customers(name);
+            CREATE INDEX IF NOT EXISTS idx_suppliers_name  ON suppliers(name);
+            CREATE INDEX IF NOT EXISTS idx_debts_direction ON debts(direction);
         """)
         self._conn.commit()
 
@@ -225,6 +283,149 @@ class Database:
             (sms_id,)
         )
         self._conn.commit()
+
+    # ── Smart Accountant: Customers ───────────────────────────────────────────
+
+    def get_customers_balance(self) -> float:
+        row = self._conn.execute(
+            'SELECT COALESCE(SUM(balance), 0.0) as t FROM customers'
+        ).fetchone()
+        return float(row['t'])
+
+    def insert_customer(self, name: str, balance: float = 0.0,
+                        phone: str = '', notes: str = '') -> int:
+        cur = self._conn.execute(
+            'INSERT INTO customers(name, balance, phone, notes) VALUES(?,?,?,?)',
+            (name, balance, phone, notes)
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    def get_customers(self, limit: int = 200) -> list:
+        rows = self._conn.execute(
+            'SELECT * FROM customers ORDER BY name ASC LIMIT ?', (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    # ── Smart Accountant: Suppliers ───────────────────────────────────────────
+
+    def get_suppliers_balance(self) -> float:
+        row = self._conn.execute(
+            'SELECT COALESCE(SUM(balance), 0.0) as t FROM suppliers'
+        ).fetchone()
+        return float(row['t'])
+
+    def insert_supplier(self, name: str, balance: float = 0.0,
+                        phone: str = '', notes: str = '') -> int:
+        cur = self._conn.execute(
+            'INSERT INTO suppliers(name, balance, phone, notes) VALUES(?,?,?,?)',
+            (name, balance, phone, notes)
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    def get_suppliers(self, limit: int = 200) -> list:
+        rows = self._conn.execute(
+            'SELECT * FROM suppliers ORDER BY name ASC LIMIT ?', (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    # ── Smart Accountant: Employees ───────────────────────────────────────────
+
+    def get_employees_balance(self) -> float:
+        row = self._conn.execute(
+            'SELECT COALESCE(SUM(balance), 0.0) as t FROM employees'
+        ).fetchone()
+        return float(row['t'])
+
+    def insert_employee(self, name: str, salary: float = 0.0,
+                        balance: float = 0.0, phone: str = '') -> int:
+        cur = self._conn.execute(
+            'INSERT INTO employees(name, salary, balance, phone) VALUES(?,?,?,?)',
+            (name, salary, balance, phone)
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    def get_employees(self, limit: int = 200) -> list:
+        rows = self._conn.execute(
+            'SELECT * FROM employees ORDER BY name ASC LIMIT ?', (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    # ── Smart Accountant: Debts ───────────────────────────────────────────────
+
+    def get_debts_total(self) -> float:
+        row = self._conn.execute(
+            """SELECT COALESCE(SUM(
+                   CASE WHEN direction='owed_to_us' THEN amount ELSE -amount END
+               ), 0.0) as t FROM debts"""
+        ).fetchone()
+        return float(row['t'])
+
+    def insert_debt(self, party_name: str, amount: float,
+                    direction: str = 'owed_to_us',
+                    due_date: str = '', notes: str = '') -> int:
+        cur = self._conn.execute(
+            'INSERT INTO debts(party_name, amount, direction, due_date, notes) VALUES(?,?,?,?,?)',
+            (party_name, amount, direction, due_date, notes)
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    def get_debts(self, direction: str = None, limit: int = 200) -> list:
+        if direction:
+            rows = self._conn.execute(
+                'SELECT * FROM debts WHERE direction=? ORDER BY due_date ASC LIMIT ?',
+                (direction, limit)
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                'SELECT * FROM debts ORDER BY due_date ASC LIMIT ?', (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    # ── Smart Accountant: Expenses total ──────────────────────────────────────
+
+    def get_expenses_total(self) -> float:
+        row = self._conn.execute(
+            "SELECT COALESCE(SUM(amount), 0.0) as t FROM transactions WHERE type='debit'"
+        ).fetchone()
+        return float(row['t'])
+
+    # ── Smart Accountant: Cash Boxes ──────────────────────────────────────────
+
+    def get_cash_boxes(self) -> list:
+        rows = self._conn.execute(
+            'SELECT * FROM cash_boxes ORDER BY name ASC'
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def insert_cash_box(self, name: str, balance: float = 0.0,
+                        currency: str = 'YER') -> int:
+        cur = self._conn.execute(
+            'INSERT INTO cash_boxes(name, balance, currency) VALUES(?,?,?)',
+            (name, balance, currency)
+        )
+        self._conn.commit()
+        return cur.lastrowid
+
+    # ── Smart Accountant: Measurements ───────────────────────────────────────
+
+    def get_measurements(self, limit: int = 200) -> list:
+        rows = self._conn.execute(
+            'SELECT * FROM measurements ORDER BY name ASC LIMIT ?', (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def insert_measurement(self, name: str, value: float = 0.0,
+                           unit: str = '', notes: str = '') -> int:
+        cur = self._conn.execute(
+            'INSERT INTO measurements(name, value, unit, notes) VALUES(?,?,?,?)',
+            (name, value, unit, notes)
+        )
+        self._conn.commit()
+        return cur.lastrowid
 
     def close(self):
         self._conn.close()

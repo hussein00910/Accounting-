@@ -1,227 +1,266 @@
 """
-Main dashboard: monthly summary, spending pie chart, recent transactions.
+المحاسب الذكي — Smart Accountant main dashboard.
+Deep Blue / DeepOrange Light theme, RTL Arabic layout.
 """
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDIconButton, MDFlatButton
+from kivymd.uix.card import MDCard
+from kivymd.uix.button import MDIconButton, MDFloatingActionButton
 from kivymd.uix.gridlayout import MDGridLayout
-from kivymd.uix.progressbar import MDProgressBar
+from kivymd.uix.chip import MDChip
+from kivymd.uix.toolbar import MDTopAppBar
+from kivy.uix.floatlayout import FloatLayout
+from kivy.graphics import Color, RoundedRectangle
 from kivy.clock import Clock
 from kivy.metrics import dp
 
 from core.database import Database
-from core.categorizer import get_category_meta, all_categories
-from utils.currency import format_amount
-from utils.date_utils import current_month, month_label, prev_month, next_month
-from ui.widgets.chart_widget import PieChart
-from ui.widgets.transaction_card import TransactionCard
-from ui.widgets.summary_widget import SummaryCard
+from ui.models.dashboard_item import DASHBOARD_ITEMS, DashboardItem
 
 
-_CATEGORY_COLORS = {
-    'food':          (1.0, 0.42, 0.42),
-    'shopping':      (0.31, 0.80, 0.78),
-    'fuel':          (0.27, 0.72, 0.82),
-    'health':        (0.59, 0.81, 0.71),
-    'subscriptions': (1.0, 0.92, 0.42),
-    'bills':         (0.87, 0.63, 0.87),
-    'transfer':      (0.45, 0.72, 1.0),
-    'entertainment': (0.99, 0.47, 0.66),
-    'other':         (0.70, 0.74, 0.76),
-}
+_BLUE   = (0.13, 0.59, 0.95, 1)
+_ORANGE = (1.0,  0.34, 0.13, 1)
+_GREY   = (0.90, 0.90, 0.90, 1)
+
+_QUICK_ACTIONS = [
+    ('البحث السريع',    False),
+    ('صرف عملات',       False),
+    ('فاتورة جديدة',    False),
+    ('صناديق النقدية',  False),
+    ('الحركة اليومية',  False),
+    ('قيد بسيط',        False),
+    ('كشف حساب',        True),
+    ('حوالة جديدة',     True),
+    ('سند جديد',        True),
+]
+
+_SOCIAL_ICONS = [
+    ('telegram',  'telegram'),
+    ('youtube',   'youtube'),
+    ('facebook',  'facebook'),
+    ('whatsapp',  'whatsapp'),
+]
+
+APP_VERSION = '135.1.2'
+
+
+class DashboardCard(MDCard):
+    def __init__(self, item: DashboardItem, on_tap=None, **kwargs):
+        super().__init__(**kwargs)
+        self._item = item
+        self.orientation = 'vertical'
+        self.padding = (dp(10), dp(12))
+        self.spacing = dp(4)
+        self.radius = [dp(12)]
+        self.elevation = 1
+        self.shadow_softness = 4
+        self.md_bg_color = (1, 1, 1, 1)
+        self.size_hint_y = None
+        self.height = dp(115)
+
+        with self.canvas.before:
+            Color(0.13, 0.59, 0.95, 0.30)
+            self._border = RoundedRectangle(pos=self.pos, size=self.size, radius=[dp(12)])
+        self.bind(pos=self._sync_border, size=self._sync_border)
+
+        icon_lbl = MDLabel(
+            text='\U000f0004',   # placeholder — MDIcon via font
+            font_style='H5',
+            halign='center',
+            theme_text_color='Custom',
+            text_color=_BLUE,
+            size_hint_y=None,
+            height=dp(36),
+        )
+        # Use MDIconButton as icon display (simpler than MDIcon in pure Python)
+        icon_btn = MDIconButton(
+            icon=item.icon,
+            theme_text_color='Custom',
+            text_color=_BLUE,
+            disabled=True,
+            size_hint=(1, None),
+            height=dp(36),
+            pos_hint={'center_x': 0.5},
+        )
+
+        title_lbl = MDLabel(
+            text=item.title,
+            font_style='Subtitle2',
+            halign='center',
+            theme_text_color='Primary',
+            size_hint_y=None,
+            height=dp(24),
+            bold=True,
+        )
+
+        self._balance_label = MDLabel(
+            text='',
+            font_style='Caption',
+            halign='center',
+            theme_text_color='Secondary',
+            size_hint_y=None,
+            height=dp(18),
+        )
+
+        self.add_widget(icon_btn)
+        self.add_widget(title_lbl)
+        if item.show_balance:
+            self.add_widget(self._balance_label)
+
+        if on_tap:
+            self.bind(on_release=lambda *_: on_tap(item.item_id))
+
+    def _sync_border(self, *_):
+        self._border.pos = self.pos
+        self._border.size = self.size
 
 
 class DashboardScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(name='dashboard', **kwargs)
-        self._month = current_month()
+        self._balance_labels: dict = {}
 
-        scroll = MDScrollView()
-        self._layout = MDBoxLayout(
+        root_float = FloatLayout()
+
+        vbox = MDBoxLayout(
             orientation='vertical',
-            padding='16dp',
-            spacing='12dp',
+            size_hint=(1, 1),
+        )
+        vbox.add_widget(self._build_top_bar())
+
+        scroll = MDScrollView(size_hint=(1, 1))
+        content = MDBoxLayout(
+            orientation='vertical',
+            padding=(dp(12), dp(8), dp(12), dp(72)),
+            spacing=dp(10),
             adaptive_height=True,
         )
-        scroll.add_widget(self._layout)
-        self.add_widget(scroll)
+        content.add_widget(self._build_quick_actions())
+        content.add_widget(self._build_cards_grid())
+        content.add_widget(self._build_footer())
+        scroll.add_widget(content)
+        vbox.add_widget(scroll)
+
+        root_float.add_widget(vbox)
+
+        fab = MDFloatingActionButton(
+            icon='plus',
+            md_bg_color=_ORANGE,
+            pos_hint={'right': 0.95, 'y': 0.03},
+        )
+        root_float.add_widget(fab)
+
+        self.add_widget(root_float)
 
     def on_enter(self):
-        self._rebuild()
+        Clock.schedule_once(self._load_balances, 0)
 
-    def _rebuild(self):
-        self._layout.clear_widgets()
+    def _load_balances(self, *_):
         db = Database.get()
+        balance_map = {
+            'customers': db.get_customers_balance(),
+            'suppliers': db.get_suppliers_balance(),
+            'employees': db.get_employees_balance(),
+            'debts':     db.get_debts_total(),
+            'expenses':  db.get_expenses_total(),
+            'other':     0.0,
+        }
+        for item_id, lbl in self._balance_labels.items():
+            val = balance_map.get(item_id, 0.0)
+            lbl.text = f'{val:,.0f} ري'
 
-        # ── Month navigation ────────────────────────────────────────────────
-        nav = MDBoxLayout(
-            orientation='horizontal',
-            size_hint_y=None, height='48dp',
-            spacing='8dp',
+    def _build_top_bar(self):
+        return MDTopAppBar(
+            title='المحاسب الذكي',
+            anchor_title='center',
+            left_action_items=[['menu', lambda x: None]],
+            right_action_items=[
+                ['magnify', lambda x: None],
+                ['bell',    lambda x: None],
+                ['sync',    lambda x: None],
+                ['plus',    lambda x: None],
+            ],
+            elevation=2,
         )
-        nav.add_widget(MDIconButton(
-            icon='chevron-right',
-            on_release=lambda *_: self._change_month(-1),
-        ))
-        nav.add_widget(MDLabel(
-            text=month_label(self._month),
-            halign='center',
-            font_style='H6',
-            theme_text_color='Primary',
-        ))
-        nav.add_widget(MDIconButton(
-            icon='chevron-left',
-            on_release=lambda *_: self._change_month(1),
-        ))
-        self._layout.add_widget(nav)
 
-        # ── Summary cards ───────────────────────────────────────────────────
-        summary = db.get_monthly_summary(self._month)
-        total_debit = summary['total_debit'] or 0
-        total_credit = summary['total_credit'] or 0
+    def _build_quick_actions(self):
+        chip_scroll = MDScrollView(
+            size_hint_y=None,
+            height=dp(52),
+            do_scroll_y=False,
+            bar_width=0,
+        )
+        row = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(6),
+            padding=(dp(4), dp(6)),
+            adaptive_width=True,
+            size_hint_y=None,
+            height=dp(52),
+        )
+        for label, is_highlighted in _QUICK_ACTIONS:
+            chip = MDChip(
+                text=label,
+                type='suggestion',
+                md_bg_color=_BLUE if is_highlighted else _GREY,
+            )
+            if is_highlighted:
+                for child in chip.children:
+                    if hasattr(child, 'theme_text_color'):
+                        child.theme_text_color = 'Custom'
+                        child.text_color = (1, 1, 1, 1)
+            row.add_widget(chip)
+        chip_scroll.add_widget(row)
+        return chip_scroll
 
+    def _build_cards_grid(self):
         grid = MDGridLayout(
-            cols=2, spacing='10dp',
-            size_hint_y=None, height='110dp',
+            cols=2,
+            spacing=dp(10),
+            padding=(0, dp(4)),
+            adaptive_height=True,
         )
-        grid.add_widget(SummaryCard(
-            title='إجمالي المصروفات',
-            value=format_amount(total_debit),
-            value_color=(1, 0.35, 0.35, 1),
-        ))
-        grid.add_widget(SummaryCard(
-            title='إجمالي الإيرادات',
-            value=format_amount(total_credit),
-            value_color=(0.2, 0.8, 0.4, 1),
-        ))
-        self._layout.add_widget(grid)
+        for item in DASHBOARD_ITEMS:
+            card = DashboardCard(item, on_tap=self._on_card_tap)
+            if item.show_balance:
+                self._balance_labels[item.item_id] = card._balance_label
+            grid.add_widget(card)
+        return grid
 
-        # ── Pie chart + category breakdown ─────────────────────────────────
-        breakdown = db.get_category_breakdown(self._month)
-
-        self._layout.add_widget(MDLabel(
-            text='توزيع المصروفات',
-            font_style='Subtitle1',
-            theme_text_color='Primary',
-            size_hint_y=None, height='32dp',
-            bold=True,
+    def _build_footer(self):
+        footer = MDBoxLayout(
+            orientation='vertical',
+            size_hint_y=None,
+            height=dp(70),
+            spacing=dp(4),
+            padding=(0, dp(8)),
+        )
+        footer.add_widget(MDLabel(
+            text=f'الإصدار {APP_VERSION}',
+            halign='center',
+            theme_text_color='Secondary',
+            font_style='Caption',
+            size_hint_y=None,
+            height=dp(20),
         ))
-
-        chart_row = MDBoxLayout(
+        icons_row = MDBoxLayout(
             orientation='horizontal',
-            size_hint_y=None, height='180dp',
-            spacing='12dp',
-        )
-
-        pie = PieChart(size_hint_x=0.45)
-        segments = [
-            (item['total'], _CATEGORY_COLORS.get(item['category'], (0.7, 0.7, 0.7)))
-            for item in breakdown
-        ]
-        pie.set_data(segments)
-        chart_row.add_widget(pie)
-
-        legend = MDBoxLayout(orientation='vertical', spacing='4dp', size_hint_x=0.55)
-        for item in breakdown[:6]:
-            meta = get_category_meta(item['category'])
-            pct = (item['total'] / total_debit * 100) if total_debit else 0
-            row = MDBoxLayout(orientation='horizontal', size_hint_y=None, height='26dp')
-            row.add_widget(MDLabel(
-                text=f"● {meta['name']}",
-                theme_text_color='Primary', font_style='Caption',
-            ))
-            row.add_widget(MDLabel(
-                text=f"{pct:.0f}%",
-                halign='right', theme_text_color='Secondary', font_style='Caption',
-            ))
-            legend.add_widget(row)
-        chart_row.add_widget(legend)
-        self._layout.add_widget(chart_row)
-
-        # ── Budget progress bars ───────────────────────────────────────────────
-        budgets = db.get_budgets()
-        if budgets:
-            self._layout.add_widget(MDLabel(
-                text='الميزانية الشهرية',
-                font_style='Subtitle1',
-                theme_text_color='Primary',
-                size_hint_y=None, height='32dp',
-                bold=True,
-            ))
-            spend_map = {r['category']: r['total'] for r in breakdown}
-            for b in budgets:
-                cat = b['category']
-                limit = b['monthly_limit']
-                spent = spend_map.get(cat, 0)
-                pct = min(spent / limit, 1.0) if limit else 0
-                meta = get_category_meta(cat)
-
-                brow = MDBoxLayout(
-                    orientation='vertical',
-                    size_hint_y=None, height='52dp',
-                    spacing='4dp',
-                )
-                lbl_row = MDBoxLayout(orientation='horizontal', size_hint_y=None, height='20dp')
-                lbl_row.add_widget(MDLabel(text=meta['name'], font_style='Caption',
-                                           theme_text_color='Primary'))
-                lbl_row.add_widget(MDLabel(
-                    text=f"{format_amount(spent)} / {format_amount(limit)}",
-                    halign='right', font_style='Caption', theme_text_color='Secondary',
-                ))
-                brow.add_widget(lbl_row)
-                bar = MDProgressBar(value=pct * 100, max=100, size_hint_y=None, height='8dp')
-                if pct >= 0.9:
-                    bar.color = (1, 0.3, 0.3, 1)
-                elif pct >= 0.7:
-                    bar.color = (1, 0.7, 0.2, 1)
-                else:
-                    bar.color = (0.2, 0.8, 0.4, 1)
-                brow.add_widget(bar)
-                self._layout.add_widget(brow)
-
-        # ── Recent transactions ───────────────────────────────────────────────
-        self._layout.add_widget(MDLabel(
-            text='آخر المعاملات',
-            font_style='Subtitle1',
-            theme_text_color='Primary',
-            size_hint_y=None, height='32dp',
-            bold=True,
-        ))
-
-        recent = db.get_transactions(month=self._month, limit=10)
-        if not recent:
-            self._layout.add_widget(MDLabel(
-                text='لا توجد معاملات هذا الشهر',
-                theme_text_color='Secondary',
-                halign='center',
-                size_hint_y=None, height='48dp',
-            ))
-        for tx in recent:
-            card = TransactionCard(tx, on_tap=self._open_tx)
-            self._layout.add_widget(card)
-
-        # See all
-        see_all = MDFlatButton(
-            text='عرض الكل',
-            theme_text_color='Custom',
-            text_color=(0.3, 0.7, 1, 1),
+            size_hint_y=None,
+            height=dp(40),
+            spacing=dp(4),
             pos_hint={'center_x': 0.5},
-            on_release=lambda *_: self._go_transactions(),
         )
-        self._layout.add_widget(see_all)
+        for icon_name, _ in _SOCIAL_ICONS:
+            icons_row.add_widget(MDIconButton(
+                icon=icon_name,
+                theme_text_color='Custom',
+                text_color=_BLUE,
+            ))
+        footer.add_widget(icons_row)
+        return footer
 
-    def _change_month(self, direction: int):
-        if direction < 0:
-            self._month = prev_month(self._month)
-        else:
-            self._month = next_month(self._month)
-        self._rebuild()
-
-    def _open_tx(self, tx: dict):
-        pass  # TODO: open transaction detail sheet
-
-    def _go_transactions(self):
-        self.manager.current = 'transactions'
+    def _on_card_tap(self, item_id: str):
+        pass

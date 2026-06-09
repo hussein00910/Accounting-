@@ -14,7 +14,7 @@ class SummaryCard(MDCard):
         self.spacing = '4dp'
         self.radius = [14]
         self.elevation = 2
-        self.md_bg_color = (0.14, 0.14, 0.16, 1)
+        self.md_bg_color = (0.96, 0.96, 0.97, 1)
         self.size_hint_y = None
         self.height = '100dp'
 
