@@ -79,12 +79,22 @@ jobs:
       - name: Locate unsigned APK
         id: find_apk
         run: |
-          APK_PATH=$(find bin/ .buildozer/ -name "*.apk" 2>/dev/null | grep -v signed | head -1)
+          # Search bin/ first (standard Buildozer output), then .buildozer/ tree
+          # Exclude only *-signed.apk (our own output) — NOT *-unsigned.apk
+          APK_PATH=$(find bin/ -name "*.apk" 2>/dev/null | grep -v "\-signed\.apk" | head -1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find .buildozer/ -name "*.apk" 2>/dev/null | grep -v "\-signed\.apk" | head -1)
+          fi
+          if [ -z "$APK_PATH" ]; then
+            echo "WARNING: No APK file found. Listing bin/ and .buildozer/ for diagnostics:"
+            find bin/ .buildozer/ -name "*.apk" -o -name "*.aab" 2>/dev/null || true
+          fi
           echo "apk_path=${APK_PATH}" >> "$GITHUB_OUTPUT"
           echo "Found APK: ${APK_PATH}"
 
       # ── Upload unsigned APK ──────────────────────────────────────────────────
       - name: Upload unsigned APK artifact
+        if: steps.find_apk.outputs.apk_path != ''
         uses: actions/upload-artifact@v4
         with:
           name: smart-accountant-unsigned
