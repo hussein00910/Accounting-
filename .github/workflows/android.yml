@@ -1,8 +1,8 @@
-name: Android APK Build & Sign
+name: "Android APK Build and Sign"
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "claude/**" ]
   pull_request:
     branches: [ "main", "master" ]
   workflow_dispatch:
@@ -80,7 +80,7 @@ jobs:
         id: find_apk
         run: |
           APK_PATH=$(find bin/ .buildozer/ -name "*.apk" 2>/dev/null | grep -v signed | head -1)
-          echo "apk_path=${APK_PATH}" >> $GITHUB_OUTPUT
+          echo "apk_path=${APK_PATH}" >> "$GITHUB_OUTPUT"
           echo "Found APK: ${APK_PATH}"
 
       # ── Upload unsigned APK ──────────────────────────────────────────────────
@@ -91,17 +91,22 @@ jobs:
           path: ${{ steps.find_apk.outputs.apk_path }}
           retention-days: 7
 
-      # ── Sign APK (only when signing secrets are configured) ─────────────────
+      # ── Sign APK ─────────────────────────────────────────────────────────────
+      # Signing is skipped automatically when SIGNING_KEY secret is not set.
       - name: Sign APK
         id: sign_apk
-        if: ${{ secrets.SIGNING_KEY != '' }}
+        continue-on-error: true
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           KEY_ALIAS: ${{ secrets.ALIAS }}
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          set -e
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "SIGNING_KEY secret not configured — skipping APK signing."
+            exit 0
+          fi
+
           UNSIGNED_APK="${{ steps.find_apk.outputs.apk_path }}"
 
           # Decode base64 keystore to a temporary file
@@ -109,13 +114,15 @@ jobs:
           echo "$SIGNING_KEY" | base64 --decode > "$KEYSTORE"
 
           # Locate build tools from pre-installed SDK or buildozer-managed SDK
-          APKSIGNER=$(find /usr/local/lib/android/sdk ~/.buildozer/android/platform/android-sdk \
+          APKSIGNER=$(find /usr/local/lib/android/sdk \
+            ~/.buildozer/android/platform/android-sdk \
             -name "apksigner" 2>/dev/null | sort -V | tail -1)
-          ZIPALIGN=$(find /usr/local/lib/android/sdk ~/.buildozer/android/platform/android-sdk \
+          ZIPALIGN=$(find /usr/local/lib/android/sdk \
+            ~/.buildozer/android/platform/android-sdk \
             -name "zipalign" 2>/dev/null | sort -V | tail -1)
 
           if [ -z "$APKSIGNER" ] || [ -z "$ZIPALIGN" ]; then
-            echo "ERROR: apksigner or zipalign not found. Check Android SDK installation."
+            echo "ERROR: apksigner or zipalign not found."
             rm -f "$KEYSTORE"
             exit 1
           fi
@@ -123,11 +130,9 @@ jobs:
           echo "Using apksigner: $APKSIGNER"
           echo "Using zipalign:  $ZIPALIGN"
 
-          # Align the APK before signing (required for apksigner)
           ALIGNED_APK="${UNSIGNED_APK%.apk}-aligned.apk"
           "$ZIPALIGN" -v -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
 
-          # Sign the aligned APK
           SIGNED_APK="bin/smart-accountant-release-signed.apk"
           "$APKSIGNER" sign \
             --ks "$KEYSTORE" \
@@ -137,18 +142,14 @@ jobs:
             --out "$SIGNED_APK" \
             "$ALIGNED_APK"
 
-          # Verify signature
           "$APKSIGNER" verify --verbose "$SIGNED_APK"
-
-          # Securely remove keystore
           rm -f "$KEYSTORE"
           echo "Keystore deleted."
-
-          echo "signed_apk=${SIGNED_APK}" >> $GITHUB_OUTPUT
+          echo "signed_apk=${SIGNED_APK}" >> "$GITHUB_OUTPUT"
 
       # ── Upload signed APK ────────────────────────────────────────────────────
       - name: Upload signed APK artifact
-        if: steps.sign_apk.outcome == 'success'
+        if: steps.sign_apk.outcome == 'success' && steps.sign_apk.outputs.signed_apk != ''
         uses: actions/upload-artifact@v4
         with:
           name: smart-accountant-release-signed
