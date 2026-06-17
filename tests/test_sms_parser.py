@@ -49,6 +49,16 @@ SAMPLES = [
         'AED 3,500.00 credited to your account. Salary. Bal: AED 4,000.00',
         3500.00, 'credit', 'EMIRATESNBD',
     ),
+    (
+        'Tamara',
+        'شراء-POS\nبـ38.15 SAR\nمن Tamara\nلك*2647\nفي 16/06/26 09:58',
+        38.15, 'debit', 'TAMARA',
+    ),
+    (
+        'Tabby',
+        'عملية نقاط بيع\nبـ30.48 SAR\nمن Tabby\nلك*2647\nفي 12/06/26 05:35',
+        30.48, 'debit', 'TABBY',
+    ),
 ]
 
 NON_BANK_SAMPLES = [

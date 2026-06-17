@@ -85,6 +85,30 @@
       "merchant_pattern": "(?:at|At)\\s*([^\\n.,]+)"
     },
     {
+      "id": "TAMARA",
+      "name": "تمارا",
+      "name_en": "Tamara",
+      "senders": ["Tamara", "TAMARA"],
+      "debit_keywords": ["شراء-POS", "نقاط بيع", "عملية نقاط بيع", "POS", "شراء", "Purchase"],
+      "credit_keywords": ["استرجاع", "استرداد", "إلغاء", "Refund"],
+      "balance_keywords": [],
+      "currency": "SAR",
+      "amount_pattern": "(?:بـ)?\\s*([\\d,]+\\.\\d{2})\\s*SAR",
+      "merchant_pattern": "(?:من|لدى|at)\\s*([^\\n،,]+)"
+    },
+    {
+      "id": "TABBY",
+      "name": "تابي",
+      "name_en": "Tabby",
+      "senders": ["Tabby", "TABBY"],
+      "debit_keywords": ["شراء-POS", "نقاط بيع", "عملية نقاط بيع", "POS", "شراء", "Purchase"],
+      "credit_keywords": ["استرجاع", "استرداد", "إلغاء", "Refund"],
+      "balance_keywords": [],
+      "currency": "SAR",
+      "amount_pattern": "(?:بـ)?\\s*([\\d,]+\\.\\d{2})\\s*SAR",
+      "merchant_pattern": "(?:من|لدى|at)\\s*([^\\n،,]+)"
+    },
+    {
       "id": "KFH",
       "name": "بيت التمويل الكويتي",
       "name_en": "Kuwait Finance House",
